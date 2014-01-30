@@ -63,20 +63,18 @@
 ;; --- projectile -------------------------------------------------------------
 
 (projectile-global-mode)
-(define-key evil-normal-state-map ",f" 'projectile-find-file)
-(define-key evil-normal-state-map " " 'projectile-find-file)
 
 
 ;; --- multi-term -------------------------------------------------------------
 
 (require 'multi-term)
 (setq multi-term-program "/bin/bash")
-(define-key evil-normal-state-map ",t" 'multi-term)
 
 
 ;; --- project-explorer -------------------------------------------------------
 
 (require 'project-explorer)
+(setq pe/width 23)
 
 
 ;; --- git-gutter-fringe ------------------------------------------------------
@@ -91,27 +89,14 @@
 (yas-global-mode 1)
 
 
-;; --- auto-complete ----------------------------------------------------------
+;; --- company-mode -----------------------------------------------------------
 
-(require 'auto-complete)
+(defun my-company-c-config ()
+ (setq company-clang-arguments (read-c-flags)))
+(add-hook 'c-mode-common-hook 'my-company-c-config)
 
-;; c
-(require 'auto-complete-clang-async)
-(defun ac-cc-mode-setup ()
-  (setq ac-clang-complete-executable "/usr/local/opt/llvm/bin/clang-complete")
-  (setq ac-sources '(ac-source-clang-async))
-  (setq ac-clang-cflags (read-c-flags))
-  (ac-clang-launch-completion-process))
-
-;; common
-(defun ac-common-setup ()
-  ())
-(defun my-ac-config ()
-  (add-hook 'c-mode-common-hook 'ac-cc-mode-setup)
-  (add-hook 'auto-complete-mode-hook 'ac-common-setup)
-  (global-auto-complete-mode t))
-
-(my-ac-config)
+(global-company-mode t)
+(setq company-idle-delay 0.2)
 
 
 ;; --- flycheck ---------------------------------------------------------------
@@ -129,6 +114,12 @@
             (remove-if-not 'include-path-flag-p (read-c-flags))))
   (setq flycheck-clang-include-path (read-c-includes)))
 (add-hook 'c-mode-common-hook 'my-flycheck-c-config)
+
+
+;; --- persp-mode -------------------------------------------------------------
+
+(setq wg-morph-on nil)
+(add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
 
 
 ;; ----------------------------------------------------------------------------
@@ -161,10 +152,41 @@
 ;; white cursor
 (set-cursor-color "#ffffff") 
 
+;; gdb
+(setq gdb-many-windows t)
+
 
 ;; ----------------------------------------------------------------------------
 ;; keys
 ;; ----------------------------------------------------------------------------
+
+;; find
+(define-key evil-normal-state-map ",f" 'projectile-find-file)
+(define-key evil-normal-state-map " " 'projectile-find-file)
+
+;; apps
+(define-key evil-normal-state-map ",t" 'multi-term)
+(define-key evil-normal-state-map ",p" 'project-explorer-open)
+
+;; persp
+(define-key evil-normal-state-map ";w" 'persp-switch)
+(define-key evil-normal-state-map ";r" 'persp-rename)
+(define-key evil-normal-state-map ";k" 'persp-kill)
+(define-key evil-normal-state-map ",a" 'persp-add-buffer)
+(define-key evil-normal-state-map ",i" 'persp-import-buffers)
+(define-key evil-normal-state-map ",k" 'persp-remove-buffer)
+(define-key evil-normal-state-map ";s" 'persp-save-state-to-file)
+(define-key evil-normal-state-map ";l" 'persp-save-load-state-from-file)
+
+;; splits
+(define-key evil-normal-state-map ",s" 'split-window-below)
+(define-key evil-normal-state-map ",v" 'split-window-right)
+
+;; buffers
+(define-key evil-normal-state-map "\C-p" nil)
+(global-set-key (kbd "C-p") 'previous-buffer)
+(define-key evil-normal-state-map "\C-n" nil)
+(global-set-key (kbd "C-n") 'next-buffer)
 
 ;; windmove
 (when (fboundp 'windmove-default-keybindings)
@@ -184,3 +206,19 @@
 (define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
 
 
+;; ----------------------------------------------------------------------------
+;; custom
+;; ----------------------------------------------------------------------------
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(persp-nil-name "none"))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

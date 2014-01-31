@@ -54,7 +54,6 @@
 
 ;; --- evil -------------------------------------------------------------------
 
-(setq evil-default-cursor (quote (t "#e0e0e0")))
 (setq evil-want-C-u-scroll t)
 
 (require-package 'evil)
@@ -92,11 +91,15 @@
 
 (require-package 'multi-term)
 (setq multi-term-program "/bin/bash")
+(setq term-unbind-key-list '("C-z" "C-x" "C-c" "C-y" "<ESC>"
+                             "C-h" "C-l" "C-k" "C-j"))
 
 
 ;; --- project-explorer -------------------------------------------------------
 
 (require-package 'project-explorer)
+(setq evil-emacs-state-modes
+      (car '('project-explorer-mode evil-emacs-state-modes)))
 (setq pe/width 23)
 
 
@@ -147,6 +150,30 @@
 (add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
 
 
+;; --- magit ------------------------------------------------------------------
+
+(require-package 'magit)
+;(require-package 'magit-filenotify)
+
+
+;; ----------------------------------------------------------------------------
+;; languages
+;; ----------------------------------------------------------------------------
+
+(require-package 'lua-mode)
+(require-package 'cmake-mode)
+
+
+;; ----------------------------------------------------------------------------
+;; manual
+;; ----------------------------------------------------------------------------
+
+(add-to-list 'load-path "~/.emacs.d/lisp/")
+
+;; --- gud (with lldb) --------------------------------------------------------
+(require 'gud)
+
+
 ;; ----------------------------------------------------------------------------
 ;; interface
 ;; ----------------------------------------------------------------------------
@@ -173,9 +200,6 @@
 (defvar *default-font*
   "-apple-Menlo-medium-normal-normal-*-11-*-*-*-m-0-iso10646-1")
 (when window-system (set-face-font 'default *default-font*))
-
-;; white cursor
-(set-cursor-color "#ffffff") 
 
 ;; gdb
 (setq gdb-many-windows t)
@@ -206,16 +230,18 @@
 ;; splits
 (define-key evil-normal-state-map ",s" 'split-window-below)
 (define-key evil-normal-state-map ",v" 'split-window-right)
+(when (fboundp 'windmove-default-keybindings) (windmove-default-keybindings))
+(global-set-key (kbd "C-h")  'windmove-left)
+(global-set-key (kbd "C-l") 'windmove-right)
+(global-set-key (kbd "C-k")    'windmove-up)
+(global-set-key (kbd "C-j")  'windmove-down)
+(global-set-key (kbd "C-q")  'delete-window)
 
 ;; buffers
 (define-key evil-normal-state-map "\C-p" nil)
 (global-set-key (kbd "C-p") 'previous-buffer)
 (define-key evil-normal-state-map "\C-n" nil)
 (global-set-key (kbd "C-n") 'next-buffer)
-
-;; windmove
-(when (fboundp 'windmove-default-keybindings)
-  (windmove-default-keybindings))
 
 
 ;; ----------------------------------------------------------------------------

@@ -1,33 +1,20 @@
-;; ----------------------------------------------------------------------------
-;; .clang_complete reading
-;; ----------------------------------------------------------------------------
+;; ------------------------------------------------------------------------------
+;; --- Environment --------------------------------------------------------------
+;; ------------------------------------------------------------------------------
+(add-to-list 'load-path "/usr/texbin")
+(add-to-list 'exec-path "/usr/local/bin")
 
-(defun read-c-flags ()
-  "list of flags from upward-found .clang_complete file, nil if not found"
-
-  (defun upward-find-file (filename &optional startdir)
-    (let ((dirname (expand-file-name (if startdir startdir ".")))
-          (found nil)
-          (top nil))
-      (while (not (or found top))
-             (if (string= (expand-file-name dirname) "/") (setq top t))
-             (if (file-exists-p (expand-file-name filename dirname))
-               (setq found t)
-               (setq dirname (expand-file-name ".." dirname))))
-      (if found (concat dirname "/") nil)))
-
-  (defun read-lines (path)
-    (with-temp-buffer
-      (insert-file-contents path)
-      (split-string (buffer-string) "\n" t)))
-
-  (let ((path (upward-find-file ".clang_complete")))
-    (if path (read-lines (concat path ".clang_complete")) nil)))
+;; Backup files
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+(setq make-backup-files nil)
 
 
-;; ----------------------------------------------------------------------------
-;; packages
-;; ----------------------------------------------------------------------------
+;; ------------------------------------------------------------------------------
+;; --- Packages -----------------------------------------------------------------
+;; ------------------------------------------------------------------------------
 
 (require 'package)
 (setq package-archives '(("melpa" . "http://melpa.milkbox.net/packages/")
@@ -36,28 +23,56 @@
                          ("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize)
 
+(defun safe-install (package)
+  "Install only if needed"
+  (unless (package-installed-p package)
+    (unless (assoc package package-archive-contents)
+      (package-refresh-contents))
+    (package-install package)))
+
 (defun require-package (package)
   "same as require, but installs package if needed"
   (progn
-    (unless (package-installed-p package)
-      (unless (assoc package package-archive-contents)
-        (package-refresh-contents))
-      (package-install package))
+    (safe-install package)
     (require package)))
 
 
-;; --- color-theme-sanityinc-tomorrow -----------------------------------------
+;; --- misc --------------------------------------------------------------------
+(require-package 'autopair)
+(require-package 'cider)
+(require-package 'ess)
+(require-package 'org)
+(require-package 'paredit)
+;; (require-package 'powerline)
 
-(require-package 'color-theme-sanityinc-tomorrow)
-(load-theme 'sanityinc-tomorrow-night t)
+;; Special case: Auctex is loaded with 'tex
+;; (safe-install 'auctex)
+;; (require 'tex)
+
+;; --- deft --------------------------------------------------------------------
+
+(require-package 'deft)
+(setq deft-directory "~/Dropbox/org/")
+(setq deft-extension "org")
+(setq deft-use-filename-as-title t)
+(setq deft-text-mode 'org-mode)
+(global-set-key (kbd "<f9>") 'deft)
+(setq deft-use-filename-as-title t)
 
 
 ;; --- evil -------------------------------------------------------------------
 
 (setq evil-want-C-u-scroll t)
+(setq evil-default-cursor '(t "#e0e0e0"))
 
 (require-package 'evil)
 (evil-mode 1)
+
+
+;; --- surround ---------------------------------------------------------------
+
+(require-package 'surround)
+(global-surround-mode 1)
 
 
 ;; --- flx-ido ----------------------------------------------------------------
@@ -66,6 +81,7 @@
 (ido-mode 1)
 (ido-everywhere 1)
 (flx-ido-mode 1)
+(setq ido-enable-flex-matching t)
 (setq ido-use-faces nil)
 
 
@@ -118,10 +134,6 @@
 ;; --- company-mode -----------------------------------------------------------
 
 (require-package 'company)
-(defun my-company-c-config ()
- (setq company-clang-arguments (read-c-flags)))
-(add-hook 'c-mode-common-hook 'my-company-c-config)
-
 (global-company-mode t)
 (setq company-idle-delay 0.2)
 
@@ -130,18 +142,6 @@
 
 (require-package 'flycheck)
 (add-hook 'after-init-hook #'global-flycheck-mode)
-
-;; c
-(defun my-flycheck-c-config ()
-  (defun read-c-includes ()
-    (defun include-path-flag-p (s)
-      (cond ((>= (length s) (length "-I"))
-             (string-equal (substring s 0 (length "-I")) "-I"))
-            (t nil)))
-    (mapcar #'(lambda (s) (substring s 2))
-            (remove-if-not 'include-path-flag-p (read-c-flags))))
-  (setq flycheck-clang-include-path (read-c-includes)))
-(add-hook 'c-mode-common-hook 'my-flycheck-c-config)
 
 
 ;; --- perspective ------------------------------------------------------------
@@ -154,82 +154,122 @@
 
 (require-package 'magit)
 ;(require-package 'magit-filenotify)
+(global-set-key (kbd "C-x g") 'magit-status)
+
+
+;; --- Guide Key ---------------------------------------------------------------
+
+(require-package 'guide-key)
+(setq guide-key/guide-key-sequence '("C-x", "C-c"))
+(setq guide-key/recursive-key-sequence-flag t)
+(guide-key-mode 1)
 
 
 ;; ----------------------------------------------------------------------------
-;; languages
-;; ----------------------------------------------------------------------------
-
-(require-package 'lua-mode)
-(require-package 'cmake-mode)
-
-
-;; ----------------------------------------------------------------------------
-;; manual
+;; --- manual -----------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 
-;; --- gud (with lldb) --------------------------------------------------------
-(require 'gud)
-
 
 ;; ----------------------------------------------------------------------------
-;; interface
+;; --- Appearance -------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-;; don't use mac fullscreen
-(setq ns-use-native-fullscreen nil)
+;; Theme
+(require-package 'zenburn-theme)
+(load-theme 'zenburn t)
 
-;; cleanup
-(menu-bar-mode 0)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
+;; Font
+(add-to-list 'default-frame-alist '(font . "Menlo-11"))
+
+;; Cleaner Mac fullscreen
+;(setq ns-use-native-fullscreen nil)
+
+;; Numbering and paren matching
+(global-linum-mode 1)
+(column-number-mode t)
+(show-paren-mode 1)
+
+(require-package 'highlight-current-line)
+(global-hl-line-mode)
+(setq highlight-current-line-globally t)
+(setq highlight-current-line-high-faces nil)
+(setq highlight-current-line-whole-line nil)
+(setq hl-line-face (quote highlight))
+
+
+;; Minimal Emacs
+(when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+(unless (display-graphic-p) (menu-bar-mode -1))
 (set-default 'truncate-lines t)
-(setq initial-scratch-message "")
 (setq inhibit-startup-message t)
+(setq inhibit-splash-screen t)
+(setq ring-bell-function 'ignore)
+(defalias 'yes-or-no-p 'y-or-n-p)  ; y versus yes
 
 ;; transparency
-(set-frame-parameter (selected-frame) 'alpha '(98 98))
-(add-to-list 'default-frame-alist '(alpha 98 98))
+(set-frame-parameter (selected-frame) 'alpha '(90 90))
+(add-to-list 'default-frame-alist '(alpha 90 90))
 
 ;; initial frame size
 (when window-system (set-frame-size (selected-frame) 141 53))
 
-;; font
-(defvar *default-font*
-  "-apple-Menlo-medium-normal-normal-*-11-*-*-*-m-0-iso10646-1")
-(when window-system (set-face-font 'default *default-font*))
-
-;; gdb
+;; gdb battlestation mode
 (setq gdb-many-windows t)
 
 
 ;; ----------------------------------------------------------------------------
-;; keys
+;; --- Keys -------------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-;; find
-(define-key evil-normal-state-map ",f" 'projectile-find-file)
-(define-key evil-normal-state-map " " 'projectile-find-file)
+;; leader
+(define-key evil-normal-state-map (kbd ",w") 'save-buffer)
+(define-key evil-normal-state-map (kbd ",e") (kbd "C-x C-e"))
+(define-key evil-normal-state-map (kbd ",bd") 'kill-this-buffer)
+(define-key evil-normal-state-map (kbd ",P") 'package-list-packages)
+(define-key evil-normal-state-map (kbd ",h") 'help-for-help-internal)
 
-;; apps
+(define-key evil-normal-state-map (kbd "SPC o") 'imenu)
+(define-key evil-normal-state-map (kbd "SPC b") 'switch-to-buffer)
+(define-key evil-normal-state-map (kbd "SPC k") 'ido-kill-buffer)
+(define-key evil-normal-state-map (kbd "SPC p") 'projectile-find-file)
+
+;; Find
+(define-key evil-normal-state-map ",f" 'projectile-find-file)
+(define-key evil-normal-state-map (kbd "SPC f") 'ido-find-file)
+
+(require-package 'helm)
+(define-key evil-normal-state-map (kbd "SPC e") 'helm-recentf)
+(define-key evil-normal-state-map (kbd "SPC t") 'helm-etags-select)
+(define-key evil-normal-state-map (kbd "SPC y") 'helm-show-kill-ring)
+
+;; Search across files
+(require-package 'helm-swoop)
+(define-key evil-normal-state-map (kbd "SPC l") 'helm-swoop)
+(define-key evil-normal-state-map (kbd "SPC L") 'helm-multi-swoop)
+
+;; Apps
 (global-set-key (kbd "M-x") 'smex)
 (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+(define-key evil-visual-state-map (kbd "SPC SPC") 'smex)
+(define-key evil-normal-state-map (kbd "SPC SPC") 'smex)
 (define-key evil-normal-state-map ",t" 'multi-term)
 (define-key evil-normal-state-map ",p" 'project-explorer-open)
 
-;; persp
-(define-key evil-normal-state-map ";w" 'persp-switch)
-(define-key evil-normal-state-map ";r" 'persp-rename)
-(define-key evil-normal-state-map ";k" 'persp-kill)
-(define-key evil-normal-state-map ",a" 'persp-add-buffer)
-(define-key evil-normal-state-map ",i" 'persp-import)
-(define-key evil-normal-state-map ",k" 'persp-remove-buffer)
+;; Perspective
+(define-key evil-normal-state-map (kbd "SPC wb") 'persp-add-buffer)
+(define-key evil-normal-state-map (kbd "SPC wc") 'persp-rename)
+(define-key evil-normal-state-map (kbd "SPC wi") 'persp-import)
+(define-key evil-normal-state-map (kbd "SPC wk") 'persp-kill)
+(define-key evil-normal-state-map (kbd "SPC wn") 'persp-new)
+(define-key evil-normal-state-map (kbd "SPC wr") 'persp-remove-buffer)
+(define-key evil-normal-state-map (kbd "SPC ws") 'persp-switch)
 
-;; splits
-(define-key evil-normal-state-map ",s" 'split-window-below)
-(define-key evil-normal-state-map ",v" 'split-window-right)
+;; Splits
+(define-key evil-normal-state-map ",s" 'evil-window-split)
+(define-key evil-normal-state-map ",v" 'evil-window-vsplit)
 (when (fboundp 'windmove-default-keybindings) (windmove-default-keybindings))
 (global-set-key (kbd "C-h")  'windmove-left)
 (global-set-key (kbd "C-l") 'windmove-right)
@@ -237,23 +277,107 @@
 (global-set-key (kbd "C-j")  'windmove-down)
 (global-set-key (kbd "C-q")  'delete-window)
 
-;; buffers
+;; Buffers
 (define-key evil-normal-state-map "\C-p" nil)
 (global-set-key (kbd "C-p") 'previous-buffer)
 (define-key evil-normal-state-map "\C-n" nil)
 (global-set-key (kbd "C-n") 'next-buffer)
 
+;; Navigations
+(define-key evil-normal-state-map (kbd "Y") (kbd "y$"))
+
+(require-package 'evil-matchit)
+(define-key evil-normal-state-map "%" 'evilmi-jump-items)
+
+(require-package 'key-chord)
+(key-chord-mode 1)
+(setq key-chord-two-keys-delay 0.3)
+(key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
+(key-chord-define evil-insert-state-map "kj" 'evil-normal-state)
+
+(require-package 'ace-jump-mode)
+(key-chord-define evil-normal-state-map "jc" 'ace-jump-char-mode)
+(key-chord-define evil-normal-state-map "jl" 'ace-jump-line-mode)
+(key-chord-define evil-normal-state-map "jw" 'ace-jump-word-mode)
+
+
+;; Comments
+(define-key evil-visual-state-map (kbd ",cc") 'comment-region)
+(define-key evil-visual-state-map (kbd ",cb") 'comment-box)
+(define-key evil-visual-state-map (kbd ",cu") 'uncomment-region)
+
+;; Bindings from vim-unimpaired
+(define-key evil-normal-state-map (kbd "[ e") (kbd "ddkP"))
+(define-key evil-normal-state-map (kbd "] e") (kbd "ddp"))
+(define-key evil-normal-state-map (kbd "[ q") 'previous-error)
+(define-key evil-normal-state-map (kbd "] q") 'next-error)
+
+;; escape minibuffer
+(defun minibuffer-keyboard-quit ()
+  "Abort recursive edit.
+In Delete Selection mode, if the mark is active, just deactivate it;
+then it takes a second \\[keyboard-quit] to abort the minibuffer."
+  (interactive)
+  (if (and delete-selection-mode transient-mark-mode mark-active)
+      (setq deactivate-mark  t)
+    (when (get-buffer "*Completions*") (delete-windows-on "*Completions*"))
+    (abort-recursive-edit)))
+(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
 
 ;; ----------------------------------------------------------------------------
-;; formatting
+;; --- formatting -------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+(setq indent-line-function 'insert-tab)
 
-;; c
+;; -----------------------------------------------------------------------------
+;; --- Language Specific -------------------------------------------------------
+;; -----------------------------------------------------------------------------
+
+;; --- C -----------------------------------------------------------------------
 (require 'cc-mode)
 (setq c-default-style "bsd" c-basic-offset 4)
 (c-set-offset 'case-label '+)
 (define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
 
+;; --- Clojure -----------------------------------------------------------------
+(require-package 'clojure-mode)
+(add-hook 'clojure-mode-hook 'paredit-mode)
 
+;; --- Python ------------------------------------------------------------------
+
+
+(require-package 'python-mode)
+
+; use IPython
+(setq-default py-shell-name "ipython")
+(setq-default py-which-bufname "IPython")
+; use the wx backend, for both mayavi and matplotlib
+(setq py-python-command-args
+  '("--gui=wx" "--pylab=wx" "-colors" "Linux"))
+(setq py-force-py-shell-name-p t)
+
+; switch to the interpreter after executing code
+(setq py-shell-switch-buffers-on-execute-p t)
+(setq py-switch-buffers-on-execute-p t)
+; don't split windows
+(setq py-split-windows-on-execute-p nil)
+; try to automagically figure out indentation
+(setq py-smart-indentation t)
+
+;; (require-package 'company-jedi)
+;; (add-to-list 'company-backends 'company-jedi)
+;; (add-hook 'python-mode-hook 'company-jedi-start)
+;; (setq company-jedi-python-bin "python3")
+(require-package 'jedi)
+(add-hook 'python-mode-hook 'jedi:setup)
+(setq jedi:setup-keys t)
+(setq jedi:complete-on-dot t)
+
+(provide 'init.el)

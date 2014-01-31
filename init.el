@@ -37,7 +37,7 @@
 (package-initialize)
 
 (defun require-package (package)
-  "Install given PACKAGE."
+  "same as require, but installs package if needed"
   (progn
     (unless (package-installed-p package)
       (unless (assoc package package-archive-contents)
@@ -141,10 +141,9 @@
 (add-hook 'c-mode-common-hook 'my-flycheck-c-config)
 
 
-;; --- persp-mode -------------------------------------------------------------
+;; --- perspective ------------------------------------------------------------
 
-(require-package 'persp-mode)
-(setq wg-morph-on nil)
+(require-package 'perspective)
 (add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
 
 
@@ -201,10 +200,8 @@
 (define-key evil-normal-state-map ";r" 'persp-rename)
 (define-key evil-normal-state-map ";k" 'persp-kill)
 (define-key evil-normal-state-map ",a" 'persp-add-buffer)
-(define-key evil-normal-state-map ",i" 'persp-import-buffers)
+(define-key evil-normal-state-map ",i" 'persp-import)
 (define-key evil-normal-state-map ",k" 'persp-remove-buffer)
-(define-key evil-normal-state-map ";s" 'persp-save-state-to-file)
-(define-key evil-normal-state-map ";l" 'persp-save-load-state-from-file)
 
 ;; splits
 (define-key evil-normal-state-map ",s" 'split-window-below)
@@ -232,23 +229,5 @@
 (setq c-default-style "bsd" c-basic-offset 4)
 (c-set-offset 'case-label '+)
 (define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
-
-
-;; ----------------------------------------------------------------------------
-;; custom
-;; ----------------------------------------------------------------------------
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(persp-nil-name "none"))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 
 

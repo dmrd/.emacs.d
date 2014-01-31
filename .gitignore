@@ -2,4 +2,6 @@
 !.gitignore
 
 !init.el
+!persp-confs/
+!persp-confs/.keepme
 

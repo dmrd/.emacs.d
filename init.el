@@ -36,9 +36,19 @@
                          ("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize)
 
+(defun require-package (package)
+  "Install given PACKAGE."
+  (progn
+    (unless (package-installed-p package)
+      (unless (assoc package package-archive-contents)
+        (package-refresh-contents))
+      (package-install package))
+    (require package)))
+
 
 ;; --- color-theme-sanityinc-tomorrow -----------------------------------------
 
+(require-package 'color-theme-sanityinc-tomorrow)
 (load-theme 'sanityinc-tomorrow-night t)
 
 
@@ -47,50 +57,64 @@
 (setq evil-default-cursor (quote (t "#e0e0e0")))
 (setq evil-want-C-u-scroll t)
 
-(require 'evil)
+(require-package 'evil)
 (evil-mode 1)
 
 
 ;; --- flx-ido ----------------------------------------------------------------
 
-(require 'flx-ido)
+(require-package 'flx-ido)
 (ido-mode 1)
 (ido-everywhere 1)
 (flx-ido-mode 1)
 (setq ido-use-faces nil)
 
 
+;; --- ido-ubiquitos ----------------------------------------------------------
+
+(require-package 'ido-ubiquitous)
+(ido-ubiquitous-mode)
+
+
+;; --- smex -------------------------------------------------------------------
+
+(require-package 'smex)
+(smex-initialize)
+
+
 ;; --- projectile -------------------------------------------------------------
 
+(require-package 'projectile)
 (projectile-global-mode)
 
 
 ;; --- multi-term -------------------------------------------------------------
 
-(require 'multi-term)
+(require-package 'multi-term)
 (setq multi-term-program "/bin/bash")
 
 
 ;; --- project-explorer -------------------------------------------------------
 
-(require 'project-explorer)
+(require-package 'project-explorer)
 (setq pe/width 23)
 
 
 ;; --- git-gutter-fringe ------------------------------------------------------
 
-(require 'git-gutter-fringe)
+(require-package 'git-gutter-fringe)
 (global-git-gutter-mode t)
 
 
 ;; --- yasnippet --------------------------------------------------------------
 
-(require 'yasnippet)
+(require-package 'yasnippet)
 (yas-global-mode 1)
 
 
 ;; --- company-mode -----------------------------------------------------------
 
+(require-package 'company)
 (defun my-company-c-config ()
  (setq company-clang-arguments (read-c-flags)))
 (add-hook 'c-mode-common-hook 'my-company-c-config)
@@ -101,6 +125,7 @@
 
 ;; --- flycheck ---------------------------------------------------------------
 
+(require-package 'flycheck)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
 ;; c
@@ -118,6 +143,7 @@
 
 ;; --- persp-mode -------------------------------------------------------------
 
+(require-package 'persp-mode)
 (setq wg-morph-on nil)
 (add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
 
@@ -165,6 +191,8 @@
 (define-key evil-normal-state-map " " 'projectile-find-file)
 
 ;; apps
+(global-set-key (kbd "M-x") 'smex)
+(global-set-key (kbd "M-X") 'smex-major-mode-commands)
 (define-key evil-normal-state-map ",t" 'multi-term)
 (define-key evil-normal-state-map ",p" 'project-explorer-open)
 
@@ -222,3 +250,5 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+

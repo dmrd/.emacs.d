@@ -41,7 +41,6 @@
 (require-package 'autopair)
 (require-package 'cider)
 (require-package 'ess)
-(require-package 'org)
 (require-package 'paredit)
 ;; (require-package 'powerline)
 
@@ -123,6 +122,7 @@
 
 (require-package 'git-gutter-fringe)
 (global-git-gutter-mode t)
+(setq git-gutter:verbosity 0)
 
 
 ;; --- yasnippet --------------------------------------------------------------
@@ -137,6 +137,10 @@
 (global-company-mode t)
 (setq company-idle-delay 0.2)
 
+(define-key company-active-map (kbd "\C-n") 'company-select-next)
+(define-key company-active-map (kbd "\C-p") 'company-select-previous)
+(define-key company-active-map (kbd "\C-d") 'company-show-doc-buffer)
+(define-key company-active-map (kbd "<tab>") 'company-complete)
 
 ;; --- flycheck ---------------------------------------------------------------
 
@@ -147,7 +151,11 @@
 ;; --- perspective ------------------------------------------------------------
 
 (require-package 'perspective)
-(add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
+;; (add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
+
+;; (require-package 'persp-mode)
+;;  ;; switch off animation of restoring window configuration
+;; (setq wg-morph-on nil)
 
 
 ;; --- magit ------------------------------------------------------------------
@@ -165,6 +173,15 @@
 (guide-key-mode 1)
 
 
+;; ;; --- CEDET ------------------------------------------------------------------
+;; (require 'cedet)
+;; (semantic-mode 1)
+
+;; (global-ede-mode 1)
+;; (global-semantic-tag
+
+
+
 ;; ----------------------------------------------------------------------------
 ;; --- manual -----------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
@@ -177,8 +194,12 @@
 ;; ----------------------------------------------------------------------------
 
 ;; Theme
-(require-package 'zenburn-theme)
-(load-theme 'zenburn t)
+(require-package 'color-theme)
+(require-package 'color-theme-molokai)
+(color-theme-molokai)
+
+;; (require-package 'zenburn-theme)
+;; (load-theme 'zenburn t)
 
 ;; Font
 (add-to-list 'default-frame-alist '(font . "Menlo-11"))
@@ -198,6 +219,11 @@
 (setq highlight-current-line-whole-line nil)
 (setq hl-line-face (quote highlight))
 
+;; Highlight lines over 80 characters
+;; (require-package 'column-marker)
+;; (column-marker-1 80)
+;; (column-marker-2 100)
+;; SEE WHITESPACE MODE
 
 ;; Minimal Emacs
 (when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
@@ -231,13 +257,13 @@
 (define-key evil-normal-state-map (kbd ",P") 'package-list-packages)
 (define-key evil-normal-state-map (kbd ",h") 'help-for-help-internal)
 
-(define-key evil-normal-state-map (kbd "SPC o") 'imenu)
+(define-key evil-normal-state-map (kbd "SPC i") 'imenu)
 (define-key evil-normal-state-map (kbd "SPC b") 'switch-to-buffer)
 (define-key evil-normal-state-map (kbd "SPC k") 'ido-kill-buffer)
 (define-key evil-normal-state-map (kbd "SPC p") 'projectile-find-file)
 
 ;; Find
-(define-key evil-normal-state-map ",f" 'projectile-find-file)
+(define-key evil-normal-state-map (kbd "SPC p") 'projectile-find-file)
 (define-key evil-normal-state-map (kbd "SPC f") 'ido-find-file)
 
 (require-package 'helm)
@@ -246,9 +272,17 @@
 (define-key evil-normal-state-map (kbd "SPC y") 'helm-show-kill-ring)
 
 ;; Search across files
+;; Also M-i during C-s search to switch to helm
 (require-package 'helm-swoop)
 (define-key evil-normal-state-map (kbd "SPC l") 'helm-swoop)
-(define-key evil-normal-state-map (kbd "SPC L") 'helm-multi-swoop)
+(define-key evil-normal-state-map (kbd "SPC L") 'helm-multi-swoop-all)
+
+;; Enable folding
+(require-package 'fold-dwim)
+(fold-dwim-outline-nested-p)
+(define-key evil-normal-state-map (kbd ";")      'fold-dwim-toggle)
+(define-key evil-normal-state-map (kbd ",fh")    'fold-dwim-hide-all)
+(define-key evil-normal-state-map (kbd ",fs")  'fold-dwim-show-all)
 
 ;; Apps
 (global-set-key (kbd "M-x") 'smex)
@@ -259,21 +293,25 @@
 (define-key evil-normal-state-map ",p" 'project-explorer-open)
 
 ;; Perspective
-(define-key evil-normal-state-map (kbd "SPC wb") 'persp-add-buffer)
-(define-key evil-normal-state-map (kbd "SPC wc") 'persp-rename)
-(define-key evil-normal-state-map (kbd "SPC wi") 'persp-import)
-(define-key evil-normal-state-map (kbd "SPC wk") 'persp-kill)
-(define-key evil-normal-state-map (kbd "SPC wn") 'persp-new)
-(define-key evil-normal-state-map (kbd "SPC wr") 'persp-remove-buffer)
-(define-key evil-normal-state-map (kbd "SPC ws") 'persp-switch)
+(define-key evil-normal-state-map (kbd "SPC wb") #'persp-add-buffer)
+(define-key evil-normal-state-map (kbd "SPC wc") #'persp-rename)
+(define-key evil-normal-state-map (kbd "SPC wi") #'persp-import-buffers)
+(define-key evil-normal-state-map (kbd "SPC wk") #'persp-kill)
+(define-key evil-normal-state-map (kbd "SPC wr") #'persp-remove-buffer)
+(define-key evil-normal-state-map (kbd "SPC ws") #'persp-switch)
+(define-key evil-normal-state-map (kbd "SPC wt") #'persp-temporarily-display-buffer)
+(define-key evil-normal-state-map (kbd "SPC ww") #'persp-save-state-to-file)
+(define-key evil-normal-state-map (kbd "SPC wl") #'persp-load-state-from-file)
 
 ;; Splits
 (define-key evil-normal-state-map ",s" 'evil-window-split)
 (define-key evil-normal-state-map ",v" 'evil-window-vsplit)
 (when (fboundp 'windmove-default-keybindings) (windmove-default-keybindings))
+(global-set-key (kbd "C-<tab>")  'other-window)
 (global-set-key (kbd "C-h")  'windmove-left)
 (global-set-key (kbd "C-l") 'windmove-right)
 (global-set-key (kbd "C-k")    'windmove-up)
+(global-unset-key (kbd "C-j"))  ;; Fix lisp mode binding
 (global-set-key (kbd "C-j")  'windmove-down)
 (global-set-key (kbd "C-q")  'delete-window)
 
@@ -291,14 +329,14 @@
 
 (require-package 'key-chord)
 (key-chord-mode 1)
-(setq key-chord-two-keys-delay 0.3)
+(setq key-chord-two-keys-delay 0.1)
 (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
 (key-chord-define evil-insert-state-map "kj" 'evil-normal-state)
 
 (require-package 'ace-jump-mode)
-(key-chord-define evil-normal-state-map "jc" 'ace-jump-char-mode)
-(key-chord-define evil-normal-state-map "jl" 'ace-jump-line-mode)
-(key-chord-define evil-normal-state-map "jw" 'ace-jump-word-mode)
+(define-key evil-normal-state-map "gc" 'ace-jump-char-mode)
+(define-key evil-normal-state-map "gl" 'ace-jump-line-mode)
+(define-key evil-normal-state-map "gw" 'ace-jump-word-mode)
 
 
 ;; Comments
@@ -328,13 +366,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
 (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
 
+
 ;; ----------------------------------------------------------------------------
-;; --- formatting -------------------------------------------------------------
+;; --- Formatting -------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
 (setq indent-line-function 'insert-tab)
+
 
 ;; -----------------------------------------------------------------------------
 ;; --- Language Specific -------------------------------------------------------
@@ -344,11 +384,31 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (require 'cc-mode)
 (setq c-default-style "bsd" c-basic-offset 4)
 (c-set-offset 'case-label '+)
-(define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
+(define-key c-mode-base-map (kbd "RET") 'c-indent-new-comment-line)
+
 
 ;; --- Clojure -----------------------------------------------------------------
 (require-package 'clojure-mode)
 (add-hook 'clojure-mode-hook 'paredit-mode)
+
+
+;; --- Haskell -----------------------------------------------------------------
+
+(require-package 'haskell-mode)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+(eval-after-load "haskell-mode"
+  '(progn
+    (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
+    (define-key haskell-mode-map (kbd "C-c C-z") 'haskell-interactive-switch)
+    (define-key haskell-mode-map (kbd "C-c C-l") 'haskell-process-load-file)
+    (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
+    (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)
+    (define-key haskell-mode-map (kbd "C-c C-e") 'inferior-haskell-send-decl)
+    ;; Unbind default keys
+    (define-key haskell-mode-map (kbd "C-c M-.") nil)
+    (define-key haskell-mode-map (kbd "C-c C-d") nil)
+    (define-key haskell-mode-map (kbd "C-x C-d") nil)))
+
 
 ;; --- Python ------------------------------------------------------------------
 
@@ -367,17 +427,48 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq py-shell-switch-buffers-on-execute-p t)
 (setq py-switch-buffers-on-execute-p t)
 ; don't split windows
-(setq py-split-windows-on-execute-p nil)
+;(setq py-split-windows-on-execute-p nil)
 ; try to automagically figure out indentation
 (setq py-smart-indentation t)
 
-;; (require-package 'company-jedi)
-;; (add-to-list 'company-backends 'company-jedi)
-;; (add-hook 'python-mode-hook 'company-jedi-start)
-;; (setq company-jedi-python-bin "python3")
+
+;; Autocompletion
 (require-package 'jedi)
 (add-hook 'python-mode-hook 'jedi:setup)
 (setq jedi:setup-keys t)
 (setq jedi:complete-on-dot t)
+
+
+;; -----------------------------------------------------------------------------
+;; --- Org Mode ----------------------------------------------------------------
+;; -----------------------------------------------------------------------------
+
+(require-package 'org)
+
+(add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+(global-set-key (kbd "C-c l") 'org-store-link)
+(global-set-key (kbd "C-c a") 'org-agenda)
+(global-set-key (kbd "C-c b") 'org-iswitchb)
+
+(setq org-directory "~/Dropbox/org")
+(setq org-mobile-inbox-for-pull "~/Dropbox/org/inbox.org")
+(setq org-mobile-directory "~/Dropbox/Apps/MobileOrg")
+
+(global-set-key (kbd "C-c r") 'remember)
+(add-hook 'remember-mode-hook 'org-remember-apply-template)
+(setq org-remember-templates  
+      '((?n "* %U %?\n\n  %i\n  %a" "~/Dropbox/org/notes.org")))
+(setq remember-annotation-functions '(org-remember-annotation)) 
+(setq remember-handler-functions '(org-remember-handler))
+
+:; Export options
+(setq org-export-html-style-include-scripts nil
+      org-export-html-style-include-default nil)
+
+
+
+(custom-set-variables
+ '(org-agenda-files (quote ("~/Dropbox/org/todo.org" "~/Dropbox/org/scratch.org"))))
+(custom-set-faces)
 
 (provide 'init.el)

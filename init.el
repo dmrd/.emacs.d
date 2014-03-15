@@ -1,6 +1,9 @@
 ;; ------------------------------------------------------------------------------
 ;; --- Environment --------------------------------------------------------------
 ;; ------------------------------------------------------------------------------
+(when (< emacs-major-version 24)
+  (error "This setup requires Emacs v24, or higher. You have: v%d" emacs-major-version))
+
 (add-to-list 'load-path "/usr/texbin")
 (add-to-list 'exec-path "/usr/local/bin")
 
@@ -39,16 +42,20 @@
 
 ;; --- misc --------------------------------------------------------------------
 (require-package 'autopair)
-(require-package 'cider)
-(require-package 'ess)
-(require-package 'paredit)
-;; (require-package 'powerline)
+(require-package 'powerline)
+(powerline-default-theme)
 
 ;; Special case: Auctex is loaded with 'tex
-;; (safe-install 'auctex)
-;; (require 'tex)
+(safe-install 'auctex)
+(require 'tex)
+(getenv "PATH")
+(setenv "PATH"
+        (concat
+         "/usr/texbin" ":"
+         (getenv "PATH")))
 
 ;; --- deft --------------------------------------------------------------------
+; Use to do quick searching through org files
 
 (require-package 'deft)
 (setq deft-directory "~/Dropbox/org/")
@@ -69,11 +76,14 @@
 
 
 ;; --- surround ---------------------------------------------------------------
-
+; Emulate change surround from vim  (cs'" etc.)
 (require-package 'surround)
 (global-surround-mode 1)
 
 
+;; ---
+;; --- Matching
+;; ---
 ;; --- flx-ido ----------------------------------------------------------------
 
 (require-package 'flx-ido)
@@ -102,19 +112,9 @@
 (projectile-global-mode)
 
 
-;; --- multi-term -------------------------------------------------------------
-
-(require-package 'multi-term)
-(setq multi-term-program "/bin/bash")
-(setq term-unbind-key-list '("C-z" "C-x" "C-c" "C-y" "<ESC>"
-                             "C-h" "C-l" "C-k" "C-j"))
-
-
 ;; --- project-explorer -------------------------------------------------------
 
 (require-package 'project-explorer)
-(setq evil-emacs-state-modes
-      (car '('project-explorer-mode evil-emacs-state-modes)))
 (setq pe/width 23)
 
 
@@ -132,7 +132,7 @@
 
 
 ;; --- company-mode -----------------------------------------------------------
-
+; Autocompletion
 (require-package 'company)
 (global-company-mode t)
 (setq company-idle-delay 0.2)
@@ -143,14 +143,14 @@
 (define-key company-active-map (kbd "<tab>") 'company-complete)
 
 ;; --- flycheck ---------------------------------------------------------------
-
+; Inline errors in gutter
 (require-package 'flycheck)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
 
 ;; --- perspective ------------------------------------------------------------
 
-(require-package 'perspective)
+;; (require-package 'perspective)
 ;; (add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
 
 ;; (require-package 'persp-mode)
@@ -165,25 +165,25 @@
 (global-set-key (kbd "C-x g") 'magit-status)
 
 
-;; --- Guide Key ---------------------------------------------------------------
-
-(require-package 'guide-key)
-(setq guide-key/guide-key-sequence '("C-x", "C-c"))
-(setq guide-key/recursive-key-sequence-flag t)
-(guide-key-mode 1)
+;; --- Winner Mode -------------------------------------------------------------
+;; Undo/redo window configuration with C-c left/right
+(winner-mode 1)
 
 
-;; ;; --- CEDET ------------------------------------------------------------------
-;; (require 'cedet)
-;; (semantic-mode 1)
+;; --- Window Number -----------------------------------------------------------
+;; Switch to # window with Command-#
+(require-package 'window-number)
+(window-number-mode 1)
+(window-number-define-keys window-number-mode-map "s-")
 
-;; (global-ede-mode 1)
-;; (global-semantic-tag
 
+;; --- Number of things to save ------------------------------------------------
+(setq kill-ring-max 500)
+(setq recentf-max-menu-items 100)
 
 
 ;; ----------------------------------------------------------------------------
-;; --- manual -----------------------------------------------------------------
+;; --- Manual -----------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
 (add-to-list 'load-path "~/.emacs.d/lisp/")
@@ -194,12 +194,12 @@
 ;; ----------------------------------------------------------------------------
 
 ;; Theme
-(require-package 'color-theme)
-(require-package 'color-theme-molokai)
-(color-theme-molokai)
+;; (require-package 'color-theme)
+;; (require-package 'color-theme-molokai)
+;; (color-theme-molokai)
 
-;; (require-package 'zenburn-theme)
-;; (load-theme 'zenburn t)
+(require-package 'zenburn-theme)
+(load-theme 'zenburn t)
 
 ;; Font
 (add-to-list 'default-frame-alist '(font . "Menlo-11"))
@@ -217,13 +217,19 @@
 (setq highlight-current-line-globally t)
 (setq highlight-current-line-high-faces nil)
 (setq highlight-current-line-whole-line nil)
-(setq hl-line-face (quote highlight))
 
 ;; Highlight lines over 80 characters
-;; (require-package 'column-marker)
-;; (column-marker-1 80)
-;; (column-marker-2 100)
-;; SEE WHITESPACE MODE
+ (require-package 'column-marker)
+ (column-marker-1 80)
+ (column-marker-2 100)
+
+;; Show EOL and tab characters
+;; (require-package 'whitespace)
+;; (setq whitespace-style '(face lines-tail tabs tab-mark newline-mark trailing))
+;; (setq whitespace-display-mappings
+;;           '((newline-mark ?\n   [?\x00AC ?\n] [?$ ?\n]) ; end-of-line
+;;             ))
+;;  ¬▸
 
 ;; Minimal Emacs
 (when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
@@ -289,7 +295,7 @@
 (global-set-key (kbd "M-X") 'smex-major-mode-commands)
 (define-key evil-visual-state-map (kbd "SPC SPC") 'smex)
 (define-key evil-normal-state-map (kbd "SPC SPC") 'smex)
-(define-key evil-normal-state-map ",t" 'multi-term)
+(define-key evil-normal-state-map ",t" 'eshell)
 (define-key evil-normal-state-map ",p" 'project-explorer-open)
 
 ;; Perspective
@@ -321,18 +327,21 @@
 (define-key evil-normal-state-map "\C-n" nil)
 (global-set-key (kbd "C-n") 'next-buffer)
 
-;; Navigations
+;; Make Y consistent with D behavior
 (define-key evil-normal-state-map (kbd "Y") (kbd "y$"))
 
+;; Jump between matching parens
 (require-package 'evil-matchit)
 (define-key evil-normal-state-map "%" 'evilmi-jump-items)
 
+;; Exit insert mode
 (require-package 'key-chord)
 (key-chord-mode 1)
 (setq key-chord-two-keys-delay 0.1)
 (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
 (key-chord-define evil-insert-state-map "kj" 'evil-normal-state)
 
+;; Jump to char/line/word
 (require-package 'ace-jump-mode)
 (define-key evil-normal-state-map "gc" 'ace-jump-char-mode)
 (define-key evil-normal-state-map "gl" 'ace-jump-line-mode)
@@ -349,6 +358,8 @@
 (define-key evil-normal-state-map (kbd "] e") (kbd "ddp"))
 (define-key evil-normal-state-map (kbd "[ q") 'previous-error)
 (define-key evil-normal-state-map (kbd "] q") 'next-error)
+(define-key evil-normal-state-map (kbd "[ g") 'git-gutter:previous-hunk)
+(define-key evil-normal-state-map (kbd "] g") 'git-gutter:next-hunk)
 
 ;; escape minibuffer
 (defun minibuffer-keyboard-quit ()
@@ -388,9 +399,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 
 ;; --- Clojure -----------------------------------------------------------------
+(require-package 'cider)  ; Repl
 (require-package 'clojure-mode)
-(add-hook 'clojure-mode-hook 'paredit-mode)
 
+(require-package 'paredit)
+(add-hook 'clojure-mode-hook 'paredit-mode)
 
 ;; --- Haskell -----------------------------------------------------------------
 
@@ -454,17 +467,25 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq org-mobile-inbox-for-pull "~/Dropbox/org/inbox.org")
 (setq org-mobile-directory "~/Dropbox/Apps/MobileOrg")
 
-(global-set-key (kbd "C-c r") 'remember)
-(add-hook 'remember-mode-hook 'org-remember-apply-template)
-(setq org-remember-templates  
-      '((?n "* %U %?\n\n  %i\n  %a" "~/Dropbox/org/notes.org")))
-(setq remember-annotation-functions '(org-remember-annotation)) 
-(setq remember-handler-functions '(org-remember-handler))
+(global-set-key (kbd "C-c c") 'org-capture)
+(setq org-default-notes-file (concat org-directory "/notes.org"))
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline (concat org-directory "/todo.org") "Todo")
+             "* TODO %?\n  %i\n")
+        ("l" "Someday" entry (file+headline (concat org-directory "/todo.org") "Someday")
+             "* %?\nEntered on %U\n  %i\n")
+        ("c" "Consume" entry (file+headline (concat org-directory "/consume.org") "New")
+             "* %?\n")
+        ("i" "Ideas" entry (file+headline (concat org-directory "/ideas.org") "New")
+             "* %?\nEntered on %U\n  %i\n")
+        ("s" "Scratch" entry (file+headline (concat org-directory "/scratch.org") "Scratch")
+             "* %?\nEntered on %U\n")
+        ("j" "Journal" entry (file+datetree (concat org-directory "/journal.org"))
+             "* %?\nEntered on %U\n")))
 
 :; Export options
 (setq org-export-html-style-include-scripts nil
       org-export-html-style-include-default nil)
-
 
 
 (custom-set-variables
@@ -472,3 +493,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (custom-set-faces)
 
 (provide 'init.el)
+
+
+

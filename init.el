@@ -40,19 +40,9 @@
     (require package)))
 
 
-;; --- misc --------------------------------------------------------------------
-(require-package 'autopair)
-(require-package 'powerline)
-(powerline-default-theme)
-
-;; Special case: Auctex is loaded with 'tex
-(safe-install 'auctex)
-(require 'tex)
-(getenv "PATH")
-(setenv "PATH"
-        (concat
-         "/usr/texbin" ":"
-         (getenv "PATH")))
+;; ----
+;; --- Navigation
+;; ----
 
 ;; --- deft --------------------------------------------------------------------
 ; Use to do quick searching through org files
@@ -75,15 +65,87 @@
 (evil-mode 1)
 
 
+;; --- projectile -------------------------------------------------------------
+
+(require-package 'projectile)
+(projectile-global-mode)
+
+
+;; --- project-explorer -------------------------------------------------------
+
+(require-package 'project-explorer)
+(setq pe/width 23)
+
+
+;; --- Window Number -----------------------------------------------------------
+;; Switch to # window with Command-#
+(require-package 'window-number)
+(window-number-mode 1)
+(window-number-define-keys window-number-mode-map "s-")
+
+
+;; --- perspective ------------------------------------------------------------
+
+;; (require-package 'perspective)
+;; (add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
+
+;; (require-package 'persp-mode)
+;;  ;; switch off animation of restoring window configuration
+;; (setq wg-morph-on nil)
+
+
+;; ----
+;; --- Completion
+;; ----
+
+;; --- company-mode -----------------------------------------------------------
+; Autocompletion
+(require-package 'company)
+(global-company-mode t)
+(setq company-idle-delay 0.2)
+
+(define-key company-active-map (kbd "\C-n") 'company-select-next)
+(define-key company-active-map (kbd "\C-p") 'company-select-previous)
+(define-key company-active-map (kbd "\C-d") 'company-show-doc-buffer)
+(define-key company-active-map (kbd "<tab>") 'company-complete)
+
+
+;; --- flycheck ---------------------------------------------------------------
+; Inline errors in gutter
+(require-package 'flycheck)
+(add-hook 'after-init-hook #'global-flycheck-mode)
+
+
+;; --- yasnippet --------------------------------------------------------------
+
+(require-package 'yasnippet)
+(yas-global-mode 1)
+
+
+;; ----
+;; --- Tools
+;; ----
+
+;; --- git-gutter-fringe ------------------------------------------------------
+
+(require-package 'git-gutter-fringe)
+(global-git-gutter-mode t)
+(setq git-gutter:verbosity 0)
+
+
 ;; --- surround ---------------------------------------------------------------
 ; Emulate change surround from vim  (cs'" etc.)
 (require-package 'surround)
 (global-surround-mode 1)
 
 
-;; ---
+;; --- misc --------------------------------------------------------------------
+(require-package 'autopair)
+
+;; ----
 ;; --- Matching
-;; ---
+;; ----
+
 ;; --- flx-ido ----------------------------------------------------------------
 
 (require-package 'flx-ido)
@@ -106,58 +168,6 @@
 (smex-initialize)
 
 
-;; --- projectile -------------------------------------------------------------
-
-(require-package 'projectile)
-(projectile-global-mode)
-
-
-;; --- project-explorer -------------------------------------------------------
-
-(require-package 'project-explorer)
-(setq pe/width 23)
-
-
-;; --- git-gutter-fringe ------------------------------------------------------
-
-(require-package 'git-gutter-fringe)
-(global-git-gutter-mode t)
-(setq git-gutter:verbosity 0)
-
-
-;; --- yasnippet --------------------------------------------------------------
-
-(require-package 'yasnippet)
-(yas-global-mode 1)
-
-
-;; --- company-mode -----------------------------------------------------------
-; Autocompletion
-(require-package 'company)
-(global-company-mode t)
-(setq company-idle-delay 0.2)
-
-(define-key company-active-map (kbd "\C-n") 'company-select-next)
-(define-key company-active-map (kbd "\C-p") 'company-select-previous)
-(define-key company-active-map (kbd "\C-d") 'company-show-doc-buffer)
-(define-key company-active-map (kbd "<tab>") 'company-complete)
-
-;; --- flycheck ---------------------------------------------------------------
-; Inline errors in gutter
-(require-package 'flycheck)
-(add-hook 'after-init-hook #'global-flycheck-mode)
-
-
-;; --- perspective ------------------------------------------------------------
-
-;; (require-package 'perspective)
-;; (add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
-
-;; (require-package 'persp-mode)
-;;  ;; switch off animation of restoring window configuration
-;; (setq wg-morph-on nil)
-
-
 ;; --- magit ------------------------------------------------------------------
 
 (require-package 'magit)
@@ -169,17 +179,16 @@
 ;; Undo/redo window configuration with C-c left/right
 (winner-mode 1)
 
-
-;; --- Window Number -----------------------------------------------------------
-;; Switch to # window with Command-#
-(require-package 'window-number)
-(window-number-mode 1)
-(window-number-define-keys window-number-mode-map "s-")
-
+;; ----
+;; --- Misc settings
+;; ----
 
 ;; --- Number of things to save ------------------------------------------------
 (setq kill-ring-max 500)
 (setq recentf-max-menu-items 100)
+
+;; --- Delete trailing whitespace on save -------------------------------------
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 
 ;; ----------------------------------------------------------------------------
@@ -192,6 +201,11 @@
 ;; ----------------------------------------------------------------------------
 ;; --- Appearance -------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
+
+;; --- Powerline ---------------------------------------------------------------
+(require-package 'powerline)
+(powerline-default-theme)
+
 
 ;; Theme
 ;; (require-package 'color-theme)
@@ -242,15 +256,11 @@
 (defalias 'yes-or-no-p 'y-or-n-p)  ; y versus yes
 
 ;; transparency
-(set-frame-parameter (selected-frame) 'alpha '(90 90))
-(add-to-list 'default-frame-alist '(alpha 90 90))
+(set-frame-parameter (selected-frame) 'alpha '(99 99))
+(add-to-list 'default-frame-alist '(alpha 99 99))
 
 ;; initial frame size
 (when window-system (set-frame-size (selected-frame) 141 53))
-
-;; gdb battlestation mode
-(setq gdb-many-windows t)
-
 
 ;; ----------------------------------------------------------------------------
 ;; --- Keys -------------------------------------------------------------------
@@ -266,7 +276,6 @@
 (define-key evil-normal-state-map (kbd "SPC i") 'imenu)
 (define-key evil-normal-state-map (kbd "SPC b") 'switch-to-buffer)
 (define-key evil-normal-state-map (kbd "SPC k") 'ido-kill-buffer)
-(define-key evil-normal-state-map (kbd "SPC p") 'projectile-find-file)
 
 ;; Find
 (define-key evil-normal-state-map (kbd "SPC p") 'projectile-find-file)
@@ -392,13 +401,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; -----------------------------------------------------------------------------
 
 ;; --- C -----------------------------------------------------------------------
+
 (require 'cc-mode)
 (setq c-default-style "bsd" c-basic-offset 4)
 (c-set-offset 'case-label '+)
 (define-key c-mode-base-map (kbd "RET") 'c-indent-new-comment-line)
 
+;; gdb battlestation mode
+(setq gdb-many-windows t)
+
 
 ;; --- Clojure -----------------------------------------------------------------
+
 (require-package 'cider)  ; Repl
 (require-package 'clojure-mode)
 
@@ -407,8 +421,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; --- Haskell -----------------------------------------------------------------
 
+(add-to-list 'exec-path "~/.cabal/bin")
 (require-package 'haskell-mode)
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+(require-package 'flycheck-hdevtools)
+(eval-after-load 'flycheck '(require 'flycheck-hdevtools))
 (eval-after-load "haskell-mode"
   '(progn
     (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
@@ -424,7 +441,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 
 ;; --- Python ------------------------------------------------------------------
-
 
 (require-package 'python-mode)
 
@@ -452,6 +468,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq jedi:complete-on-dot t)
 
 
+;; --- Tex ---------------------------------------------------------------------
+
+;; Special case: Auctex is loaded with 'tex
+(safe-install 'auctex)
+(require 'tex)
+(getenv "PATH")
+(setenv "PATH"
+        (concat
+         "/usr/texbin:/usr/local/bin:"
+         (getenv "PATH")))
+
+
 ;; -----------------------------------------------------------------------------
 ;; --- Org Mode ----------------------------------------------------------------
 ;; -----------------------------------------------------------------------------
@@ -472,7 +500,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline (concat org-directory "/todo.org") "Todo")
              "* TODO %?\n  %i\n")
-        ("l" "Someday" entry (file+headline (concat org-directory "/todo.org") "Someday")
+        ("l" "Learn" entry (file+headline (concat org-directory "/learn.org") "Learn")
+             "* %?\nEntered on %U\n  %i\n")
+        ("f" "Someday" entry (file+headline (concat org-directory "/todo.org") "Someday")
              "* %?\nEntered on %U\n  %i\n")
         ("c" "Consume" entry (file+headline (concat org-directory "/consume.org") "New")
              "* %?\n")
@@ -487,12 +517,19 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq org-export-html-style-include-scripts nil
       org-export-html-style-include-default nil)
 
+;; Set export filename for main agenda
+ (setq org-agenda-custom-commands
+           '(("X" agenda "" nil ("~/.emacs.d/tmp/agenda.txt"))))
+
+;; Automatically update agenda every 30 minutes
+(run-with-timer 0 (* 30 60) 'org-store-agenda-views)
 
 (custom-set-variables
- '(org-agenda-files (quote ("~/Dropbox/org/todo.org" "~/Dropbox/org/scratch.org"))))
+ '(org-agenda-files (quote ("~/Dropbox/org/todo.org"
+                            "~/Dropbox/org/scratch.org"))))
 (custom-set-faces)
 
 (provide 'init.el)
 
-
-
+(put 'narrow-to-region 'disabled nil)
+(put 'narrow-to-page 'disabled nil)

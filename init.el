@@ -1,8 +1,9 @@
-;; ------------------------------------------------------------------------------
-;; --- Environment --------------------------------------------------------------
-;; ------------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+;; --- Environment ------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 (when (< emacs-major-version 24)
-  (error "This setup requires Emacs v24, or higher. You have: v%d" emacs-major-version))
+  (error "This setup requires Emacs v24, or higher. You have: v%d"
+         emacs-major-version))
 
 (add-to-list 'load-path "/usr/texbin")
 (add-to-list 'exec-path "/usr/local/bin")
@@ -15,9 +16,9 @@
 (setq make-backup-files nil)
 
 
-;; ------------------------------------------------------------------------------
-;; --- Packages -----------------------------------------------------------------
-;; ------------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+;; --- Packages ---------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 
 (require 'package)
 (setq package-archives '(("melpa" . "http://melpa.milkbox.net/packages/")
@@ -40,11 +41,11 @@
     (require package)))
 
 
-;; ----
-;; --- Navigation
-;; ----
+;; ----------------------------------------------------------------------------
+;; --- Navigation -------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 
-;; --- deft --------------------------------------------------------------------
+;; --- deft -------------------------------------------------------------------
 ; Use to do quick searching through org files
 
 (require-package 'deft)
@@ -57,7 +58,6 @@
 
 
 ;; --- evil -------------------------------------------------------------------
-
 (setq evil-want-C-u-scroll t)
 (setq evil-default-cursor '(t "#e0e0e0"))
 
@@ -66,26 +66,38 @@
 
 
 ;; --- projectile -------------------------------------------------------------
-
 (require-package 'projectile)
 (projectile-global-mode)
 
 
 ;; --- project-explorer -------------------------------------------------------
-
 (require-package 'project-explorer)
 (setq pe/width 23)
 
 
-;; --- Window Number -----------------------------------------------------------
+;; --- Window Number ----------------------------------------------------------
 ;; Switch to # window with Command-#
 (require-package 'window-number)
 (window-number-mode 1)
 (window-number-define-keys window-number-mode-map "s-")
 
 
-;; --- perspective ------------------------------------------------------------
+;; --- Winner Mode ------------------------------------------------------------
+;; Undo/redo window configuration with C-c left/right
+(winner-mode 1)
 
+
+;; --- autopair ---------------------------------------------------------------
+(require-package 'autopair)
+
+
+;; --- surround ---------------------------------------------------------------
+; Emulate change surround from vim  (cs'" etc.)
+(require-package 'surround)
+(global-surround-mode 1)
+
+
+;; --- perspective ------------------------------------------------------------
 ;; (require-package 'perspective)
 ;; (add-hook 'after-init-hook #'(lambda () (persp-mode 1)))
 
@@ -94,9 +106,9 @@
 ;; (setq wg-morph-on nil)
 
 
-;; ----
-;; --- Completion
-;; ----
+;; ----------------------------------------------------------------------------
+;; --- Completion -------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 
 ;; --- company-mode -----------------------------------------------------------
 ; Autocompletion
@@ -110,44 +122,16 @@
 (define-key company-active-map (kbd "<tab>") 'company-complete)
 
 
-;; --- flycheck ---------------------------------------------------------------
-; Inline errors in gutter
-(require-package 'flycheck)
-(add-hook 'after-init-hook #'global-flycheck-mode)
-
-
 ;; --- yasnippet --------------------------------------------------------------
-
 (require-package 'yasnippet)
 (yas-global-mode 1)
 
 
-;; ----
-;; --- Tools
-;; ----
-
-;; --- git-gutter-fringe ------------------------------------------------------
-
-(require-package 'git-gutter-fringe)
-(global-git-gutter-mode t)
-(setq git-gutter:verbosity 0)
-
-
-;; --- surround ---------------------------------------------------------------
-; Emulate change surround from vim  (cs'" etc.)
-(require-package 'surround)
-(global-surround-mode 1)
-
-
-;; --- misc --------------------------------------------------------------------
-(require-package 'autopair)
-
-;; ----
-;; --- Matching
-;; ----
+;; ----------------------------------------------------------------------------
+;; --- Matching ---------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 
 ;; --- flx-ido ----------------------------------------------------------------
-
 (require-package 'flx-ido)
 (ido-mode 1)
 (ido-everywhere 1)
@@ -156,36 +140,40 @@
 (setq ido-use-faces nil)
 
 
-;; --- ido-ubiquitos ----------------------------------------------------------
-
+;; --- ido-ubiquitous ---------------------------------------------------------
 (require-package 'ido-ubiquitous)
 (ido-ubiquitous-mode)
 
 
 ;; --- smex -------------------------------------------------------------------
-
 (require-package 'smex)
 (smex-initialize)
 
 
-;; --- magit ------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+;; --- Tools ------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 
+;; --- magit ------------------------------------------------------------------
 (require-package 'magit)
 ;(require-package 'magit-filenotify)
 (global-set-key (kbd "C-x g") 'magit-status)
 
 
-;; --- Winner Mode -------------------------------------------------------------
-;; Undo/redo window configuration with C-c left/right
-(winner-mode 1)
+;; --- flycheck ---------------------------------------------------------------
+; Inline errors in gutter
+(require-package 'flycheck)
+(add-hook 'after-init-hook #'global-flycheck-mode)
 
-;; ----
-;; --- Misc settings
-;; ----
 
-;; --- Number of things to save ------------------------------------------------
+;; ----------------------------------------------------------------------------
+;; --- Misc settings ----------------------------------------------------------
+;; ----------------------------------------------------------------------------
+
+;; --- Number of things to save -----------------------------------------------
 (setq kill-ring-max 500)
 (setq recentf-max-menu-items 100)
+
 
 ;; --- Delete trailing whitespace on save -------------------------------------
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
@@ -202,16 +190,21 @@
 ;; --- Appearance -------------------------------------------------------------
 ;; ----------------------------------------------------------------------------
 
-;; --- Powerline ---------------------------------------------------------------
+;; --- Powerline --------------------------------------------------------------
 (require-package 'powerline)
 (powerline-default-theme)
 
 
-;; Theme
+;; --- git-gutter-fringe ------------------------------------------------------
+(require-package 'git-gutter-fringe)
+(global-git-gutter-mode t)
+(setq git-gutter:verbosity 0)
+
+
+;; --- Theme ------------------------------------------------------------------
 ;; (require-package 'color-theme)
 ;; (require-package 'color-theme-molokai)
 ;; (color-theme-molokai)
-
 (require-package 'zenburn-theme)
 (load-theme 'zenburn t)
 
@@ -314,7 +307,8 @@
 (define-key evil-normal-state-map (kbd "SPC wk") #'persp-kill)
 (define-key evil-normal-state-map (kbd "SPC wr") #'persp-remove-buffer)
 (define-key evil-normal-state-map (kbd "SPC ws") #'persp-switch)
-(define-key evil-normal-state-map (kbd "SPC wt") #'persp-temporarily-display-buffer)
+(define-key evil-normal-state-map (kbd "SPC wt")
+  #'persp-temporarily-display-buffer)
 (define-key evil-normal-state-map (kbd "SPC ww") #'persp-save-state-to-file)
 (define-key evil-normal-state-map (kbd "SPC wl") #'persp-load-state-from-file)
 
@@ -396,11 +390,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq indent-line-function 'insert-tab)
 
 
-;; -----------------------------------------------------------------------------
-;; --- Language Specific -------------------------------------------------------
-;; -----------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+;; --- Language Specific ------------------------------------------------------
+;; ----------------------------------------------------------------------------
 
-;; --- C -----------------------------------------------------------------------
+;; --- C ----------------------------------------------------------------------
 
 (require 'cc-mode)
 (setq c-default-style "bsd" c-basic-offset 4)
@@ -411,7 +405,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq gdb-many-windows t)
 
 
-;; --- Clojure -----------------------------------------------------------------
+;; --- Clojure ----------------------------------------------------------------
 
 (require-package 'cider)  ; Repl
 (require-package 'clojure-mode)
@@ -419,7 +413,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (require-package 'paredit)
 (add-hook 'clojure-mode-hook 'paredit-mode)
 
-;; --- Haskell -----------------------------------------------------------------
+;; --- Haskell ----------------------------------------------------------------
 
 (add-to-list 'exec-path "~/.cabal/bin")
 (require-package 'haskell-mode)
@@ -439,8 +433,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (define-key haskell-mode-map (kbd "C-c C-d") nil)
     (define-key haskell-mode-map (kbd "C-x C-d") nil)))
 
+;; --- Javascript -------------------------------------------------------------
+(setq js-indent-level 2)  ;; set JavaScript indent to two spaces
 
-;; --- Python ------------------------------------------------------------------
+;; --- Java -------------------------------------------------------------------
+
+;; --- Python -----------------------------------------------------------------
 
 (require-package 'python-mode)
 
@@ -468,7 +466,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq jedi:complete-on-dot t)
 
 
-;; --- Tex ---------------------------------------------------------------------
+;; --- Tex --------------------------------------------------------------------
 
 ;; Special case: Auctex is loaded with 'tex
 (safe-install 'auctex)
@@ -480,9 +478,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
          (getenv "PATH")))
 
 
-;; -----------------------------------------------------------------------------
-;; --- Org Mode ----------------------------------------------------------------
-;; -----------------------------------------------------------------------------
+;; ----------------------------------------------------------------------------
+;; --- Org Mode ---------------------------------------------------------------
+;; ----------------------------------------------------------------------------
 
 (require-package 'org)
 
@@ -500,6 +498,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq org-capture-templates
       '(("t" "Todo" entry (file+headline (concat org-directory "/todo.org") "Todo")
              "* TODO %?\n  %i\n")
+        ("w" "Work" entry (file+headline (concat org-directory "/work.org") "Todo")
+             "* TODO %?\n  %i\n")
         ("l" "Learn" entry (file+headline (concat org-directory "/learn.org") "Learn")
              "* %?\nEntered on %U\n  %i\n")
         ("f" "Someday" entry (file+headline (concat org-directory "/todo.org") "Someday")
@@ -509,6 +509,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         ("i" "Ideas" entry (file+headline (concat org-directory "/ideas.org") "New")
              "* %?\nEntered on %U\n  %i\n")
         ("s" "Scratch" entry (file+headline (concat org-directory "/scratch.org") "Scratch")
+             "* %?\nEntered on %U\n")
+        ("d" "Dream" entry (file+headline (concat org-directory "/journal.org") "Dreams")
              "* %?\nEntered on %U\n")
         ("j" "Journal" entry (file+datetree (concat org-directory "/journal.org"))
              "* %?\nEntered on %U\n")))
@@ -525,9 +527,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (run-with-timer 0 (* 30 60) 'org-store-agenda-views)
 
 (custom-set-variables
- '(org-agenda-files (quote ("~/Dropbox/org/todo.org"
-                            "~/Dropbox/org/scratch.org"))))
-(custom-set-faces)
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(org-agenda-files (quote ("~/Dropbox/org/todo.org" "~/Dropbox/org/scratch.org" "~/Dropbox/org/work.org"))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
 
 (provide 'init.el)
 

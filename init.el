@@ -65,6 +65,18 @@
 (evil-mode 1)
 
 
+;; --- helm -------------------------------------------------------------------
+(require-package 'helm)
+(setq helm-c-locate-command
+      (case system-type
+        ('gnu/linux "locate -i -r %s")
+        ('berkeley-unix "locate -i %s")
+        ('windows-nt "es %s")
+        ('darwin "mdfind -name %s %s")
+        (t "locate %s"))
+      )
+
+
 ;; --- projectile -------------------------------------------------------------
 (require-package 'projectile)
 (projectile-global-mode)
@@ -271,11 +283,13 @@
 (define-key evil-normal-state-map (kbd "SPC k") 'ido-kill-buffer)
 
 ;; Find
-(define-key evil-normal-state-map (kbd "SPC p") 'projectile-find-file)
+(require-package 'helm-projectile)
+(define-key evil-normal-state-map (kbd "SPC p") 'helm-projectile)
 (define-key evil-normal-state-map (kbd "SPC f") 'ido-find-file)
+(define-key evil-normal-state-map (kbd "SPC s") 'helm-for-files)  ;;search
 
-(require-package 'helm)
-(define-key evil-normal-state-map (kbd "SPC e") 'helm-recentf)
+;; "everything"
+(define-key evil-normal-state-map (kbd "SPC e") 'helm-mini)
 (define-key evil-normal-state-map (kbd "SPC t") 'helm-etags-select)
 (define-key evil-normal-state-map (kbd "SPC y") 'helm-show-kill-ring)
 
@@ -284,6 +298,9 @@
 (require-package 'helm-swoop)
 (define-key evil-normal-state-map (kbd "SPC l") 'helm-swoop)
 (define-key evil-normal-state-map (kbd "SPC L") 'helm-multi-swoop-all)
+
+ (require-package 'helm-ag)
+ (define-key evil-normal-state-map (kbd "SPC a") 'helm-ag)
 
 ;; Enable folding
 (require-package 'fold-dwim)
